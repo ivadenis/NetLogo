@@ -14,10 +14,13 @@ to init-model
 end
 
 to update-model
-  update-globals
-  ask patches [update-patch]
-  ask turtles [update-turtle]
-  tick
+  ifelse not any? turtles with [who = 1] [stop ]
+  [
+    update-globals
+    ask patches [update-patch]
+    ask turtles [update-turtle]
+    tick
+  ]
 end
 
 ; helpers:
@@ -41,8 +44,8 @@ to init-turtle
 end
 
 to init-ped
-;    set shape "person"  
-  set color 105
+  set shape "person"  
+  set color green
   set size 3
   set xcor 20
   set ycor 20
@@ -52,12 +55,11 @@ end
 
 to init-car
   set size 5
-;    set shape "car"
-  set color 15
+  set shape "car"
+  set color blue
   set xcor 0
   set ycor 0
   face ped
-;    face turtle pedestrian  
   pen-down
 end
 
@@ -74,22 +76,39 @@ to update-car
     ifelse (not can-move? car-speed) [back car-speed] 
     [
       ifelse (distance ped < car-speed) [fd distance ped] [fd car-speed]
+      if (distance ped = 0) [ print "bang!" kill-ped ]
     ]
 end
 
+to kill-ped
+  ask ped [
+    ask patches in-radius 5 [set pcolor red]
+    beep
+    die
+  ]
+end
+
 to update-ped
-  ifelse (distance car = 0) [ die stop]
+  ifelse (distance car = 0) 
+  [ 
+    die
+    ask patches in-radius 5 [set pcolor red]
+  ]
   [
     face  car
     ifelse (random 2) = 1 [left 90] [right 90]
     if (not can-move? pedestrian-speed) [rt 90]
     forward pedestrian-speed
   ]
+  face  car
+  ifelse (random 2) = 1 [left 90] [right 90]
+  if (not can-move? pedestrian-speed) [rt 90]
+  forward pedestrian-speed
+
 end
 
 to update-globals
   ; update global variables here
-;  
 end
 
 to update-patch
@@ -99,10 +118,7 @@ end
 
 to update-turtle
    ; add commands
-   ifelse not any? turtles with [who = 1] [ print "stop" stop ]
-   [
-     ifelse (self =  car) [update-car print "updating car"] [update-ped]
-   ]
+   ifelse (self =  car) [update-car] [update-ped]
 end
 
 
@@ -180,7 +196,7 @@ pedestrian-speed
 pedestrian-speed
 1
 25
-2
+3
 1
 1
 NIL
@@ -210,7 +226,7 @@ turning-radius
 turning-radius
 1
 25
-5
+25
 1
 1
 NIL
