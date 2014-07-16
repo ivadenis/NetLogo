@@ -1,16 +1,15 @@
-
+turtles-own [ rhythm nearby-turtles ]
 
 to init-model
   clear-all
   random-seed new-seed
   init-globals
-  create-turtles 5
+
+  create-turtles 100
   ask patches [init-patch]
   ask turtles [init-turtle]
   reset-ticks
 end
-
-
 
 to update-model
   update-globals
@@ -23,6 +22,7 @@ end
 
 to init-globals
   ; initialize globals here
+
 end
 
 to init-patch
@@ -31,6 +31,10 @@ end
 
 to init-turtle
   ; initialize turtle here
+  setxy random-xcor random-ycor ; send each turtle to a random position, for example
+  set rhythm 1 + random 10
+  set color gray
+  set shape "bug"
 end
 
 to update-globals
@@ -41,9 +45,27 @@ to update-patch
   ; update patch here
 end
 
-
 to update-turtle
-   ; add commands
+  set color gray
+  set nearby-turtles turtles in-radius vision
+  move
+  flash
+  update-rhythm
+end
+
+; *****************************
+
+to move
+  setxy random-xcor random-ycor
+end
+
+to flash
+  if (ticks mod rhythm) = 0 [ set color yellow ]
+end
+
+to update-rhythm
+  type "updating rhythm to: " print (one-of modes [rhythm] of turtles-here)
+  set rhythm one-of modes [rhythm] of nearby-turtles
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -60,8 +82,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -106,6 +128,39 @@ NIL
 NIL
 NIL
 1
+
+PLOT
+7
+112
+207
+262
+plot
+ticks
+flashing
+0.0
+100.0
+0.0
+100.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot 100 * (count turtles with [color = yellow] / count turtles)"
+
+SLIDER
+2
+65
+174
+98
+vision
+vision
+0
+10
+3
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
