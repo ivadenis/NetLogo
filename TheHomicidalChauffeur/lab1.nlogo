@@ -6,8 +6,8 @@ globals [
 to init-model
   clear-all
   random-seed new-seed
-  init-globals
   create-turtles 2  
+  init-globals
   ask patches [init-patch]
   ask turtles [init-turtle]
   reset-ticks
@@ -25,63 +25,81 @@ end
 to init-globals
   ; initialize globals here
 ;  set pen-mode trace-path
-  set car 0
-  set ped 1
+  set car turtle 0
+  set ped turtle 1
+  
 end
 
 to init-patch
   ; initialize patches here
+  set pcolor white
 end
 
 to init-turtle
   ; initialize turtle here
-   init-ped
-   init-car
+  ifelse self = car [init-car] [init-ped]
 end
 
 to init-ped
-  ask turtle ped
-  [ 
-    set shape "person"
-    set color 105
-    set size 3
-    set xcor 20
-    set ycor 20
-    face turtle car
-  ]
-  
+;    set shape "person"  
+  set color 105
+  set size 3
+  set xcor 20
+  set ycor 20
+  face car
+  pen-down
 end
 
 to init-car
-  ; init car
-  ask turtle car
-  [ 
-    set size 5
-    set shape "car"
-    set color 15
-    set xcor 0
-    set ycor 0
-;    face turtle pedestrian
-  ]
+  set size 5
+;    set shape "car"
+  set color 15
+  set xcor 0
+  set ycor 0
+  face ped
+;    face turtle pedestrian  
+  pen-down
 end
 
 to update-car
-  ask turtle car [
-    face turtle ped
-    forward car-speed
+   ; type "angle:" print angle
+    type "carHeadingBefore: " print heading
+    type "towards ped: " print towards ped
+    let angle subtract-headings (heading) (towards ped)
+    type "angle: " print angle
+  
+    ifelse (abs (angle) > turning-radius)
+    [
+      type "angle > turning-radius: " print (abs (angle) > turning-radius)
+      ifelse (angle >= 0) [left turning-radius] [right turning-radius]
+    ]
+    [
+      print "facing ped"
+      face ped      
+    ]
     
-;    face turtle pedestrian
-;    fd car-speed
-  ]
+    ifelse (not can-move? car-speed) [back car-speed print "backing up" ] 
+    [
+      ifelse (distance ped < car-speed) [fd distance ped] [fd car-speed]
+      
+;      fd car-speed print "going fwd"
+      type "distance to ped: " print distance ped
+      if (distance ped = 0) [ask ped [die] stop]
+    ]
+    type "carHeadingAfter: " print heading
 end
 
 to update-ped
+  print "Ped: Oh dang!"
+  face  car
   ifelse (random 2) = 1 [left 90] [right 90]
+  if (not can-move? pedestrian-speed) [rt 90 type "ped can't move!" ]
   forward pedestrian-speed
 end
 
 to update-globals
   ; update global variables here
+;  if not any? turtles with [who = 1] [ stop ]
 end
 
 to update-patch
@@ -91,8 +109,7 @@ end
 
 to update-turtle
    ; add commands
-   update-car
-   update-ped
+   ifelse (self =  car) [update-car] [update-ped]
 end
 
 
@@ -101,26 +118,26 @@ end
     
 @#$#@#$#@
 GRAPHICS-WINDOW
-226
-22
-1045
-862
+381
+10
+907
+509
 32
-32
-12.455
+29
+7.94
 1
 10
 1
 1
 1
 0
-1
-1
+0
+0
 1
 -32
 32
--32
-32
+-29
+29
 0
 0
 1
@@ -169,8 +186,8 @@ SLIDER
 pedestrian-speed
 pedestrian-speed
 1
-3
-1
+25
+2
 1
 1
 NIL
@@ -184,23 +201,23 @@ SLIDER
 car-speed
 car-speed
 1
-5
-4
+10
+6
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-4
+13
 178
-176
+185
 211
 turning-radius
 turning-radius
 1
-4
-1
+25
+25
 1
 1
 NIL
@@ -213,7 +230,7 @@ SWITCH
 288
 trace-path
 trace-path
-1
+0
 1
 -1000
 
@@ -224,7 +241,7 @@ SWITCH
 335
 wrap
 wrap
-1
+0
 1
 -1000
 
