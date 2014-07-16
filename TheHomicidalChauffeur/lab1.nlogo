@@ -62,44 +62,34 @@ to init-car
 end
 
 to update-car
-   ; type "angle:" print angle
-    type "carHeadingBefore: " print heading
-    type "towards ped: " print towards ped
     let angle subtract-headings (heading) (towards ped)
-    type "angle: " print angle
-  
     ifelse (abs (angle) > turning-radius)
     [
-      type "angle > turning-radius: " print (abs (angle) > turning-radius)
       ifelse (angle >= 0) [left turning-radius] [right turning-radius]
     ]
     [
-      print "facing ped"
       face ped      
     ]
     
-    ifelse (not can-move? car-speed) [back car-speed print "backing up" ] 
+    ifelse (not can-move? car-speed) [back car-speed] 
     [
       ifelse (distance ped < car-speed) [fd distance ped] [fd car-speed]
-      
-;      fd car-speed print "going fwd"
-      type "distance to ped: " print distance ped
-      if (distance ped = 0) [ask ped [die] stop]
     ]
-    type "carHeadingAfter: " print heading
 end
 
 to update-ped
-  print "Ped: Oh dang!"
-  face  car
-  ifelse (random 2) = 1 [left 90] [right 90]
-  if (not can-move? pedestrian-speed) [rt 90 type "ped can't move!" ]
-  forward pedestrian-speed
+  ifelse (distance car = 0) [ die stop]
+  [
+    face  car
+    ifelse (random 2) = 1 [left 90] [right 90]
+    if (not can-move? pedestrian-speed) [rt 90]
+    forward pedestrian-speed
+  ]
 end
 
 to update-globals
   ; update global variables here
-;  if not any? turtles with [who = 1] [ stop ]
+;  
 end
 
 to update-patch
@@ -109,7 +99,10 @@ end
 
 to update-turtle
    ; add commands
-   ifelse (self =  car) [update-car] [update-ped]
+   ifelse not any? turtles with [who = 1] [ print "stop" stop ]
+   [
+     ifelse (self =  car) [update-car print "updating car"] [update-ped]
+   ]
 end
 
 
@@ -202,7 +195,7 @@ car-speed
 car-speed
 1
 10
-6
+4
 1
 1
 NIL
@@ -217,7 +210,7 @@ turning-radius
 turning-radius
 1
 25
-25
+5
 1
 1
 NIL
