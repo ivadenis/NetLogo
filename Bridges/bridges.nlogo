@@ -1,16 +1,74 @@
+globals [speed vision]
+turtles-own [boldness status art-skill code-skill biz-skill]
 
+breed [hackers hacker]
+breed [suits suit]
+breed [hipsters hipster]
 
+; ===== constructors =====
 to init-model
   clear-all
   random-seed new-seed
   init-globals
-  create-turtles 5
+  create-hackers population [init-hackers]
+  create-hipsters population [init-hipsters]
+  create-suits population [init-suits]
   ask patches [init-patch]
   ask turtles [init-turtle]
+  clear-output
   reset-ticks
+  show count turtles
 end
 
+to init-globals
+  ; initialize globals here
+;  set population
+  set speed 5
+  set vision 5
+end
 
+to init-patch
+  ; initialize patches here
+end
+
+to init-hackers
+  ;init hackers
+  set color blue
+end
+
+to init-suits
+  ;init suits
+  set color red
+end
+
+to init-hipsters
+  ;init hipsters
+  set color green
+end
+
+to init-turtle
+  ; initialize turtle here
+  setxy random-xcor random-ycor
+  set boldness (random 100 + 1)
+  init-code-skill
+  init-art-skill
+  init-biz-skill
+  set-status
+end
+
+to init-code-skill
+  ifelse (breed = hackers)  [ set code-skill ( 60 + random 41 ) ] [ set code-skill ( random 101 ) ]
+end
+
+to init-art-skill
+  ifelse (breed = hipsters) [ set art-skill ( 60 + random 41 ) ]  [ set art-skill ( random 101 ) ]
+end
+
+to init-biz-skill
+  ifelse (breed = suits)    [ set biz-skill ( 60 + random 41 ) ]  [ set biz-skill ( random 101 ) ]
+end
+
+; ====== updaters ======
 
 to update-model
   update-globals
@@ -19,19 +77,7 @@ to update-model
   tick
 end
 
-; helpers:
-
-to init-globals
-  ; initialize globals here
-end
-
-to init-patch
-  ; initialize patches here
-end
-
-to init-turtle
-  ; initialize turtle here
-end
+; ====== helpers: =======
 
 to update-globals
   ; update global variables here
@@ -41,15 +87,75 @@ to update-patch
   ; update patch here
 end
 
-
 to update-turtle
    ; add commands
+  make-friend
+  move
+end
+
+to transfer-skills-from [neighbour]
+  set-code-skill [code-skill] of neighbour
+  set-biz-skill  [biz-skill]  of neighbour
+  set-art-skill  [art-skill]  of neighbour
+  set-status
 end
 
 
+; ===== helpers ======
+
+to make-friend
+  let neighbour (one-of other turtles in-radius vision)
+  ; If the neighbor is not already a friend, and if the neighbor is the same breed or if the turtle's boldness is above some adjustable threshold, 
+  ; then the turtle creates a link to the neighbor and acquires half of each of the neighbor's skills if that would increase the turtle's skills.
+  if ( (neighbour != nobody) and (not link-neighbor? neighbour) ) and  ( (breed = [breed] of neighbour) or (boldness > boldness-threshold) ) 
+  [
+    create-link-with neighbour
+    transfer-skills-from neighbour
+    type "status: " type status type ", boldness: " print boldness
+  ]
+end
+
+to move
+  rt random (360 + 1)
+  fd random speed
+end
+
+to-report get-skill-ratio [skill]
+  report (skill * transfer-ratio) / 100
+end
+
+; ===== mutators ======
+
+to set-code-skill [new-skill]
+  let skill-ratio (get-skill-ratio new-skill)
+  if ( code-skill < skill-ratio ) [ set code-skill skill-ratio ]
+end
   
-    
-    
+to set-biz-skill [new-skill]
+  let skill-ratio (get-skill-ratio new-skill)
+  if ( biz-skill < skill-ratio ) [ set biz-skill skill-ratio ]
+end
+
+to set-art-skill [new-skill]
+  let skill-ratio (get-skill-ratio new-skill)
+  if ( art-skill < skill-ratio ) [ set art-skill skill-ratio ]
+end
+
+to set-status
+  set status (code-skill + art-skill + biz-skill)
+end
+
+; ===== graphing =====
+
+to graph
+  plot-pen-reset
+  set-plot-pen-mode 2
+  set-plot-y-range ( min [status] of turtles ) ( max [status] of turtles )
+  foreach [boldness] of turtles
+  [
+    plotxy ( ?1 ) ( mean [status] of turtles with [boldness = ?1] )
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 226
@@ -65,8 +171,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -111,6 +217,65 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+1
+70
+217
+103
+boldness-threshold
+boldness-threshold
+0
+100
+80
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+668
+23
+1184
+326
+plot 1
+bodlness
+status
+0.0
+100.0
+0.0
+100.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "graph"
+
+INPUTBOX
+3
+146
+218
+206
+population
+100
+1
+0
+Number
+
+SLIDER
+2
+108
+218
+141
+transfer-ratio
+transfer-ratio
+0
+100
+50
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

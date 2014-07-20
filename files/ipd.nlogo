@@ -1,10 +1,12 @@
 
+turtles-own [strategy fitness vindictiveness opponent]
 
 to init-model
   clear-all
   random-seed new-seed
   init-globals
-  create-turtles 5
+  create-turtles 50 [set strategy  "cheat"]
+  create-turtles 50 [set strategy  "cooperate"]
   ask patches [init-patch]
   ask turtles [init-turtle]
   reset-ticks
@@ -31,6 +33,8 @@ end
 
 to init-turtle
   ; initialize turtle here
+  set xcor random-xcor
+  set ycor random-ycor
 end
 
 to update-globals
@@ -43,8 +47,43 @@ end
 
 
 to update-turtle
-   ; add commands
+   set opponent one-of other turtles in-radius 3 with [opponent = nobody]
+   if opponent != nobody
+   [
+       ask opponent [set opponent myself] 
+       play
+   ]
+   move
 end
+
+to move
+  rt random 360
+  fd random 6
+end
+
+to play 
+  let my-move get-move
+  let opponents-move [get-move] of opponent
+  update-fitness my-move opponents-move
+  ask opponent [update-fitness opponents-move my-move]
+  ask opponent [set opponent nobody]
+  set opponent nobody
+end
+
+
+
+
+to update-fitness [my-move opponent-move]
+  ; increment my fitness
+  ; if opponent-move = true & I dcide to punish
+  ; then deduct from my fitness and opponent's fitness
+  
+end
+
+to-report get-move
+  ifelse strategy = "cheat" [report true] [report false]
+end
+  
 
 
   
@@ -441,7 +480,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.5
+NetLogo 5.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -449,9 +488,9 @@ NetLogo 5.0.5
 @#$#@#$#@
 default
 0.0
--0.2 0 0.0 1.0
+-0.2 0 1.0 0.0
 0.0 1 1.0 0.0
-0.2 0 0.0 1.0
+0.2 0 1.0 0.0
 link direction
 true
 0
