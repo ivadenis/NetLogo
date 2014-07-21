@@ -1,17 +1,15 @@
-
+globals [population speed vision]
 turtles-own [enthusiasm]
 
 to init-model
   clear-all
   random-seed new-seed
   init-globals
-  create-turtles 50
+  create-turtles population
   ask patches [init-patch]
   ask turtles [init-turtle]
   reset-ticks
 end
-
-
 
 to update-model
   update-globals
@@ -24,6 +22,9 @@ end
 
 to init-globals
   ; initialize globals here
+  set population 50
+  set speed 5
+  set vision 5
 end
 
 to init-patch
@@ -33,8 +34,8 @@ end
 to init-turtle
   ; initialize turtle here
   set shape "default"
-  ifelse who < ((infection-rate / 100) * 50) [set enthusiasm (random 51) + 50] [ set enthusiasm 0]
-  set color scale-color red enthusiasm 100 0
+  ifelse who < ( (infection-rate / 100) * population ) [set enthusiasm (random 51) + 50] [set enthusiasm 0]
+  update-color
   set xcor random-xcor
   set ycor random-ycor
 end
@@ -47,34 +48,41 @@ to update-patch
   ; update patch here
 end
 
-
 to update-turtle
    ; select neighbor in raduis 5
-   let neighbor one-of other turtles in-radius 5
+   let neighbor one-of other turtles in-radius vision
    ; If that neighbor's enthusiasm is less than the executing turtle, and neigbor is not self or nobody
    ;  then the neighbor's enthusiasm is set to the sum of the enthusiasms of the two turtles, or 100 max
-   if (neighbor != nobody AND [enthusiasm] of neighbor < enthusiasm) [ 
-     ask neighbor[update-enthusiasm]
+   if (neighbor != nobody and [enthusiasm] of neighbor < enthusiasm) [ 
+     print "==== Transfering enthusiasm... ===="
+     ask neighbor [update-enthusiasm]
      ; decrement enthusiasm to simulate time
      let new-enthusiasm  (enthusiasm - random fade-rate)
-     ifelse (new-enthusiasm > 0) [set enthusiasm new-enthusiasm] [set enthusiasm 0]
+     type "new-enthusiasm: " print new-enthusiasm
+     ifelse (new-enthusiasm > 0) [set enthusiasm new-enthusiasm print "set to new..."] [set enthusiasm 0 print "set to 0..."]
      ; update color
-     set color scale-color red enthusiasm 100 0
+     update-color
+     print "===== done ====="
    ]
-   ; move randomly
-   rt random 360
-   fd random 4
+   move
+end
+
+to move
+  rt random 360
+  fd random speed
 end
 
 to update-enthusiasm
   ; if enthusiasm is less  than the enthusiasm of calling turtle
   ;  then the neighbor's enthusiasm is set to the sum of the enthusiasms of the two turtles, or 100 max
   let total (enthusiasm + [enthusiasm] of myself)
-  print self
-  print myself
-  ifelse (total > 100) [set enthusiasm 100][set enthusiasm total]
+  type [enthusiasm] of myself type " + " type enthusiasm type " = " print total
+  ifelse (total > 100) [set enthusiasm 100 print "set to 100" ] [set enthusiasm total print "set to total"]
 end
 
+to update-color
+  set color scale-color red enthusiasm 100 0
+end
 
   
     
@@ -150,7 +158,7 @@ infection-rate
 infection-rate
 0
 100
-25
+11
 1
 1
 NIL
@@ -165,17 +173,17 @@ fade-rate
 fade-rate
 0
 100
-15
+30
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-679
-123
-879
-273
+671
+19
+1192
+365
 Mean Enthusiasm
 NIL
 NIL
